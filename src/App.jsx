@@ -49,7 +49,7 @@ function App() {
   }, [data_history]);
 
   useEffect(() => {
-    const appBase = "https://dpp-browser.vercel.app/";
+    const appBase = "https://dpp-browser-omega.vercel.app/";
     const currentUrl = window.location.href;
 
     if (currentUrl.startsWith(appBase)) {

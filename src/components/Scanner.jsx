@@ -17,7 +17,7 @@ function Scanner({ loadNewElement }) {
     function success(result) {
       if (result) {
         // Remove the app base URL if present
-        const appBase = "https://dpp-browser.vercel.app/";
+        const appBase = "https://dpp-browser-omega.vercel.app/";
         let finalUrl = result;
 
         if (finalUrl.startsWith(appBase)) {
