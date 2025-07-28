@@ -49,22 +49,49 @@ function App() {
   }, [data_history]);
 
   useEffect(() => {
-    const appBase = "https://dpp-browser-omega.vercel.app/";
-    const currentUrl = window.location.href;
+    const origin   = window.location.origin;
+    const basePath = import.meta?.env?.BASE_URL ?? '/';
+    const appBase  = `${origin}${basePath}`;
 
-    if (currentUrl.startsWith(appBase)) {
-    const extraPath = currentUrl.slice(appBase.length);
+    const href = window.location.href;
+    if (!href.startsWith(appBase)) return;
 
-    if (extraPath.trim()) {
-      const apiPath = `https://${extraPath}`;
+    // strip off the base
+    const extra = href.slice(appBase.length);
+    if (!extra.trim()) return;    // no deep‑link data
 
-      // Fetch data
-      loadNewElement({ api_url: apiPath });
+    let apiUrl;
 
-      // Clean the URL in the browser without reloading
-      window.history.replaceState({}, document.title, appBase);
+    if (extra.includes('=') && !extra.startsWith('/')) {
+      // ─── new “query‑string” style: ?batch_code=…&…&dpp_software=…
+      const qs = extra.startsWith('?') ? extra : `?${extra}`;
+      const params = new URLSearchParams(qs);
+
+      const batch   = params.get('batch_code');
+      const item    = params.get('item_code');
+      const family  = params.get('productfamily_code');
+      const company = params.get('company_code');
+      const lang    = params.get('lang');
+      const swRaw   = params.get('dpp_software') || '';
+      const swUrl   = new URL(decodeURIComponent(swRaw));
+      const hostAndPath = `${swUrl.host}${swUrl.pathname}`.replace(/\/$/, '');
+
+      apiUrl = [
+        'https:/',
+        hostAndPath,
+        batch, item, family, company, lang
+      ].join('/');
+    } else {
+      // ─── old “path‑style”: extra === "80.211.143.55/.../it/?format=json"
+      // just prefix with https:// and call it a day
+      apiUrl = `https://${extra}`;
     }
-  }
+
+    // fire off your loader
+    loadNewElement({ api_url: apiUrl });
+
+    // wipe the extra off the URL bar
+    window.history.replaceState({}, document.title, appBase);
   }, []);
 
 
